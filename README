@@ -27,3 +27,5 @@ If you think you found a bug, please report it to
 https://bugreports.qt.io/browse/QTIFW
 
 General questions are best asked on interest@qt-project.org.
+
+修改了一些在windows上用vs2019不能编译的问题，主要是由于在.cpp里面写Private Qtobject引起的。
