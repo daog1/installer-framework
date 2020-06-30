@@ -58,6 +58,7 @@ using namespace QInstaller;
 //
 // Private
 //
+/*
 class UpdateFinder::Private
 {
 public:
@@ -109,7 +110,7 @@ public:
 
     QSet<PackageSource> packageSources;
     std::weak_ptr<LocalPackageHub> m_localPackageHub;
-};
+};*/
 
 
 static int computeProgressPercentage(int min, int max, int percent)

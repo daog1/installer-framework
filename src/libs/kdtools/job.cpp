@@ -31,7 +31,7 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QTimer>
-
+/*
 
 // -- Job::Private
 
@@ -84,7 +84,7 @@ public:
     quint64 processedAmount;
     int m_timeout;
     QTimer m_timer;
-};
+};*/
 
 
 // -- Job
@@ -237,4 +237,4 @@ void Job::onFinished()
         deleteLater();
 }
 
-#include "moc_job.cpp"
+//#include "moc_job.cpp"

@@ -30,6 +30,7 @@
 #define ELEVATEDEXECUTEOPERATION_H
 
 #include "qinstallerglobal.h"
+#include "qprocesswrapper.h"
 
 namespace QInstaller {
 
@@ -40,6 +41,26 @@ class INSTALLER_EXPORT ElevatedExecuteOperation : public QObject, public Operati
 public:
     explicit ElevatedExecuteOperation(PackageManagerCore *core);
     ~ElevatedExecuteOperation();
+    class Private
+    {
+    public:
+        explicit Private(ElevatedExecuteOperation *qq)
+            : q(qq)
+            , process(nullptr)
+            , showStandardError(false)
+        {
+        }
+
+    private:
+        ElevatedExecuteOperation *const q;
+
+    public:
+        void readProcessOutput();
+        bool run(const QStringList &arguments);
+
+        QProcessWrapper *process;
+        bool showStandardError;
+    };
 
     void backup() Q_DECL_OVERRIDE;
     bool performOperation() Q_DECL_OVERRIDE;
@@ -56,7 +77,7 @@ public Q_SLOTS:
 private:
     Q_PRIVATE_SLOT(d, void readProcessOutput())
 
-    class Private;
+    //class Private;
     Private *d;
 };
 

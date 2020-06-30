@@ -32,11 +32,12 @@
 #include "kdtoolsglobal.h"
 
 #include <QtCore/QObject>
-
+#include <QEventLoop>
+#include <QTimer>
 class KDTOOLS_EXPORT Job : public QObject
 {
     Q_OBJECT
-    class Private;
+    //class Private;
 
     Q_PROPERTY(int timeout READ timeout WRITE setTimeout)
     Q_PROPERTY(bool autoDelete READ autoDelete WRITE setAutoDelete)
@@ -58,6 +59,56 @@ public:
 
     Q_DECLARE_FLAGS(Capabilities, Capability)
 
+    class Private
+    {
+        Job *const q;
+
+    public:
+        explicit Private(Job *qq)
+            : q(qq)
+            , error(Job::NoError)
+            , caps(Job::NoCapabilities)
+            , autoDelete(true)
+            , totalAmount(100)
+            , processedAmount(0)
+            , m_timeout(-1)
+        {
+            connect(&m_timer, &QTimer::timeout, q, &Job::cancel);
+        }
+
+        ~Private()
+        {
+            m_timer.stop();
+        }
+
+        void delayedStart()
+        {
+            q->doStart();
+            emit q->started(q);
+        }
+
+        void waitForSignal(const char *sig)
+        {
+            QEventLoop loop;
+            q->connect(q, sig, &loop, SLOT(quit()));
+
+            if (m_timeout >= 0)
+                m_timer.start(m_timeout);
+            else
+                m_timer.stop();
+
+            loop.exec();
+        }
+
+        int error;
+        QString errorString;
+        Job::Capabilities caps;
+        bool autoDelete;
+        quint64 totalAmount;
+        quint64 processedAmount;
+        int m_timeout;
+        QTimer m_timer;
+    };
     int error() const;
     QString errorString() const;
 

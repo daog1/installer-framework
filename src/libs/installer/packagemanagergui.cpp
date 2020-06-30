@@ -43,6 +43,7 @@
 #include "componentselectionpage_p.h"
 
 #include "sysinfo.h"
+#include "clickforwarder.h"
 
 #include <QApplication>
 
@@ -85,120 +86,44 @@ using namespace KDUpdater;
 using namespace QInstaller;
 
 
-class DynamicInstallerPage : public PackageManagerPage
-{
-    Q_OBJECT
-    Q_DISABLE_COPY(DynamicInstallerPage)
-
-    Q_PROPERTY(bool final READ isFinal WRITE setFinal)
-    Q_PROPERTY(bool commit READ isCommit WRITE setCommit)
-    Q_PROPERTY(bool complete READ isComplete WRITE setComplete)
-
-public:
-    explicit DynamicInstallerPage(QWidget *widget, PackageManagerCore *core = nullptr)
-        : PackageManagerPage(core)
-        , m_widget(widget)
-    {
-        setObjectName(QLatin1String("Dynamic") + widget->objectName());
-        setPixmap(QWizard::WatermarkPixmap, QPixmap());
-
-        setColoredSubTitle(QLatin1String(" "));
-        setColoredTitle(widget->windowTitle());
-        m_widget->setProperty("complete", true);
-        m_widget->setProperty("final", false);
-        m_widget->setProperty("commit", false);
-        widget->installEventFilter(this);
-
-        setLayout(new QVBoxLayout);
-        layout()->addWidget(widget);
-        layout()->setContentsMargins(0, 0, 0, 0);
-
-        addPageAndProperties(packageManagerCore()->controlScriptEngine());
-        addPageAndProperties(packageManagerCore()->componentScriptEngine());
-    }
-
-    QWidget *widget() const
-    {
-        return m_widget;
-    }
-
-    bool isComplete() const
-    {
-        return m_widget->property("complete").toBool();
-    }
-
-    void setFinal(bool final) {
-        if (isFinal() == final)
-            return;
-        m_widget->setProperty("final", final);
-    }
-    bool isFinal() const {
-        return m_widget->property("final").toBool();
-    }
-
-    void setCommit(bool commit) {
-        if (isCommit() == commit)
-            return;
-        m_widget->setProperty("commit", commit);
-    }
-    bool isCommit() const {
-        return m_widget->property("commit").toBool();
-    }
-
-    void setComplete(bool complete) {
-        if (isComplete() == complete)
-            return;
-        m_widget->setProperty("complete", complete);
-    }
-
-protected:
-    bool eventFilter(QObject *obj, QEvent *event)
-    {
-        if (obj == m_widget) {
-            switch(event->type()) {
-            case QEvent::WindowTitleChange:
-                setColoredTitle(m_widget->windowTitle());
-                break;
-
-            case QEvent::DynamicPropertyChange:
-                emit completeChanged();
-                if (m_widget->property("final").toBool() != isFinalPage())
-                    setFinalPage(m_widget->property("final").toBool());
-                if (m_widget->property("commit").toBool() != isCommitPage())
-                    setCommitPage(m_widget->property("commit").toBool());
-                break;
-
-            default:
-                break;
-            }
-        }
-        return PackageManagerPage::eventFilter(obj, event);
-    }
-
-    void addPageAndProperties(ScriptEngine *engine)
-    {
-        engine->addToGlobalObject(this);
-        engine->addToGlobalObject(widget());
-
-        static const QStringList properties = QStringList() << QStringLiteral("final")
-            << QStringLiteral("commit") << QStringLiteral("complete");
-        foreach (const QString &property, properties) {
-            engine->evaluate(QString::fromLatin1(
-                "Object.defineProperty(%1, \"%2\", {"
-                    "get : function() { return Dynamic%1.%2; },"
-                    "set: function(val) { Dynamic%1.%2 = val; }"
-                "});"
-            ).arg(m_widget->objectName(), property));
-        }
-    }
-
-private:
-    QWidget *const m_widget;
-};
-Q_DECLARE_METATYPE(DynamicInstallerPage*)
-
-
 // -- PackageManagerGui::Private
+DynamicInstallerPage::DynamicInstallerPage(QWidget *widget, PackageManagerCore *core)
+    : PackageManagerPage(core)
+    , m_widget(widget)
+{
+    setObjectName(QLatin1String("Dynamic") + widget->objectName());
+    setPixmap(QWizard::WatermarkPixmap, QPixmap());
+
+    setColoredSubTitle(QLatin1String(" "));
+    setColoredTitle(widget->windowTitle());
+    m_widget->setProperty("complete", true);
+    m_widget->setProperty("final", false);
+    m_widget->setProperty("commit", false);
+    widget->installEventFilter(this);
+
+    setLayout(new QVBoxLayout);
+    layout()->addWidget(widget);
+    layout()->setContentsMargins(0, 0, 0, 0);
+
+    addPageAndProperties(packageManagerCore()->controlScriptEngine());
+    addPageAndProperties(packageManagerCore()->componentScriptEngine());
+}
+void DynamicInstallerPage::addPageAndProperties(ScriptEngine *engine)
+{
+    engine->addToGlobalObject(this);
+    engine->addToGlobalObject(widget());
+
+    static const QStringList properties = QStringList() << QStringLiteral("final")
+        << QStringLiteral("commit") << QStringLiteral("complete");
+    foreach (const QString &property, properties) {
+        engine->evaluate(QString::fromLatin1(
+            "Object.defineProperty(%1, \"%2\", {"
+                "get : function() { return Dynamic%1.%2; },"
+                "set: function(val) { Dynamic%1.%2 = val; }"
+            "});"
+        ).arg(m_widget->objectName(), property));
+    }
+}
 
 class PackageManagerGui::Private
 {
@@ -1679,7 +1604,7 @@ void IntroductionPage::setText(const QString &text)
 
 
 // -- LicenseAgreementPage::ClickForwarder
-
+/*
 class LicenseAgreementPage::ClickForwarder : public QObject
 {
     Q_OBJECT
@@ -1701,7 +1626,7 @@ protected:
     }
 private:
     QAbstractButton *m_abstractButton;
-};
+};*/
 
 
 // -- LicenseAgreementPage
@@ -2952,5 +2877,5 @@ void RestartPage::leaving()
 {
 }
 
-#include "packagemanagergui.moc"
-#include "moc_packagemanagergui.cpp"
+//#include "packagemanagergui.moc"
+//#include "moc_packagemanagergui.cpp"

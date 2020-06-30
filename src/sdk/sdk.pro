@@ -104,6 +104,8 @@ SOURCES = \
           updatechecker.cpp \
           commandlineparser.cpp
 
+
+#LIBS += -linstaller
 win32 {
     # Use our own manifest file
     CONFIG -= embed_manifest_exe

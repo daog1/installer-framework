@@ -32,9 +32,12 @@
 
 #include "task.h"
 #include "packagesource.h"
+#include "filedownloader.h"
+#include "updatesinfo_p.h"
 
 #include <memory>
-
+#include <QtCore/qset.h>
+using QInstaller::PackageSource;
 namespace KDUpdater {
 
 class LocalPackageHub;
@@ -43,11 +46,64 @@ class Update;
 class KDTOOLS_EXPORT UpdateFinder : public Task
 {
     Q_OBJECT
-    class Private;
+    //class Private;
 
 public:
     UpdateFinder();
     ~UpdateFinder();
+    class Private
+    {
+    public:
+        enum struct Resolution {
+            AddPackage,
+            KeepExisting,
+            RemoveExisting
+        };
+
+        Private(UpdateFinder *qq)
+            : q(qq)
+            , downloadCompleteCount(0)
+            , m_downloadsToComplete(0)
+        {}
+
+        ~Private()
+        {
+            clear();
+        }
+
+        struct Data {
+            Data()
+                : downloader(0) {}
+            Data(const PackageSource &i, FileDownloader *d = 0)
+                : info(i), downloader(d) {}
+
+            PackageSource info;
+            FileDownloader *downloader;
+        };
+        UpdateFinder *q;
+        QHash<QString, Update *> updates;
+
+        // Temporary structure that notes down information about updates.
+        bool cancel;
+        int downloadCompleteCount;
+        int m_downloadsToComplete;
+        QHash<UpdatesInfo *, Data> m_updatesInfoList;
+
+        void clear();
+        void computeUpdates();
+        void cancelComputeUpdates();
+        bool downloadUpdateXMLFiles();
+        bool computeApplicableUpdates();
+
+        QList<UpdateInfo> applicableUpdates(UpdatesInfo *updatesInfo);
+        void createUpdateObjects(const PackageSource &source, const QList<UpdateInfo> &updateInfoList);
+        Resolution checkPriorityAndVersion(const PackageSource &source, const QVariantHash &data) const;
+        void slotDownloadDone();
+
+        QSet<PackageSource> packageSources;
+        std::weak_ptr<LocalPackageHub> m_localPackageHub;
+    };
+
 
     QList<Update *> updates() const;
 

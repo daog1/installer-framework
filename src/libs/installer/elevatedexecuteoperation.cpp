@@ -37,7 +37,7 @@
 #include <QtCore/QThread>
 
 using namespace QInstaller;
-
+/*
 class ElevatedExecuteOperation::Private
 {
 public:
@@ -57,7 +57,7 @@ public:
 
     QProcessWrapper *process;
     bool showStandardError;
-};
+};*/
 
 ElevatedExecuteOperation::ElevatedExecuteOperation(PackageManagerCore *core)
     : UpdateOperation(core)
