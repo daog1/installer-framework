@@ -1,0 +1,4 @@
+#ifndef CLICKFORWARDER_H
+#define CLICKFORWARDER_H
+
+#endif // CLICKFORWARDER_H
